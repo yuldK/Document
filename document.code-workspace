@@ -11,7 +11,9 @@
 		"editor.tabSize": 4,
 		"editor.detectIndentation": false,
 		"files.associations": {
-			"span": "cpp"
+			"span": "cpp",
+			"vector": "cpp",
+			"xstring": "cpp"
 		},
 		"[cpp]": {
 			"files.encoding": "euckr",

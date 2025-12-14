@@ -10,9 +10,14 @@ add_sources(${target}
 )
 
 add_sources(${target}
+	"Encoding"
+	"encoding.cpp"
+	"encoding.h"
+)
+
+add_sources(${target}
 	"Util"
 	"position.h"
 	"range.h"
 	"type.h"
-	"encoding.h"
 )
