@@ -5,7 +5,9 @@
 #include <vector>
 
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include <Windows.h>
+#include <stringapiset.h>
+#include <WinNls.h>
 
 // 인코딩 감지 (최적화: 한 번의 순회로 모든 검사 수행)
 yul::Encoding yul::detectEncoding(std::span<std::byte> data)
