@@ -1,5 +1,6 @@
 #pragma once
 
+#include <compare>
 #include "type.h"
 
 namespace yul
