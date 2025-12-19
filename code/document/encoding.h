@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <cstdint>
 #include <span>
@@ -6,7 +6,7 @@
 
 namespace yul
 {
-	// ÀÎÄÚµù Å¸ÀÔ
+	// ì¸ì½”ë”© íƒ€ì…
 	enum class Encoding : uint8_t
 	{
 		utf8,
@@ -16,7 +16,7 @@ namespace yul
 
 	inline bool checkBOM(std::span<std::byte> data)
 	{
-		// UTF-8 BOM Ã¼Å© (0xEF 0xBB 0xBF)
+		// UTF-8 BOM ì²´í¬ (0xEF 0xBB 0xBF)
 		return data.size() >= 3
 			&& data[0] == std::byte(0xEF)
 			&& data[1] == std::byte(0xBB)
@@ -24,10 +24,10 @@ namespace yul
 			;
 	}
 
-	// ÀÎÄÚµù °¨Áö (ÃÖÀûÈ­: ÇÑ ¹øÀÇ ¼øÈ¸·Î ¸ğµç °Ë»ç ¼öÇà)
+	// ì¸ì½”ë”© ê°ì§€ (ìµœì í™”: í•œ ë²ˆì˜ ìˆœíšŒë¡œ ëª¨ë“  ê²€ì‚¬ ìˆ˜í–‰)
 	Encoding detectEncoding(std::span<std::byte> data);
 
-	// EUC-KR/CP949 ¡æ UTF-8 º¯È¯
-	// Windows¿¡¼­´Â OS º¯È¯ API(MultiByteToWideChar/WideCharToMultiByte)¸¦ »ç¿ëÇÕ´Ï´Ù.
+	// EUC-KR/CP949 â†’ UTF-8 ë³€í™˜
+	// Windowsì—ì„œëŠ” OS ë³€í™˜ API(MultiByteToWideChar/WideCharToMultiByte)ë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
 	std::u8string convertEucKrToUtf8(std::span<std::byte> data);
 }

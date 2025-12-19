@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "type.h"
 #include "position.h"
@@ -38,7 +38,7 @@ namespace yul
 		constexpr Range& operator=(Range&& other) noexcept
 		{
 			*this = other;
-			// other ºñ¿ì±â
+			// other ë¹„ìš°ê¸°
 			other = Range{ {}, {} };
 			return *this;
 		}

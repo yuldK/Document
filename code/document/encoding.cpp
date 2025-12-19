@@ -1,4 +1,4 @@
-#include "encoding.h"
+ï»¿#include "encoding.h"
 
 #include <cstring>
 #include <string>
@@ -9,7 +9,7 @@
 #include <stringapiset.h>
 #include <WinNls.h>
 
-// ÀÎÄÚµù °¨Áö (ÃÖÀûÈ­: ÇÑ ¹øÀÇ ¼øÈ¸·Î ¸ğµç °Ë»ç ¼öÇà)
+// ì¸ì½”ë”© ê°ì§€ (ìµœì í™”: í•œ ë²ˆì˜ ìˆœíšŒë¡œ ëª¨ë“  ê²€ì‚¬ ìˆ˜í–‰)
 yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 {
 	if (data.empty())
@@ -18,7 +18,7 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 	if (checkBOM(data))
 		return Encoding::utf8;
 
-	// ÇÑ ¹øÀÇ ¼øÈ¸·Î UTF-8 À¯È¿¼º, ÇÑ±Û Æ÷ÇÔ ¿©ºÎ, EUC-KR ÆĞÅÏÀ» ¸ğµÎ °Ë»ç
+	// í•œ ë²ˆì˜ ìˆœíšŒë¡œ UTF-8 ìœ íš¨ì„±, í•œê¸€ í¬í•¨ ì—¬ë¶€, EUC-KR íŒ¨í„´ì„ ëª¨ë‘ ê²€ì‚¬
 	bool isValidUtf8 = true;
 	bool hasUtf8Korean = false;
 	bool hasEucKrPattern = false;
@@ -35,10 +35,10 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 			continue;
 		}
 
-		// UTF-8 ¸ÖÆ¼¹ÙÀÌÆ® °Ë»ç
+		// UTF-8 ë©€í‹°ë°”ì´íŠ¸ ê²€ì‚¬
 		if (isValidUtf8)
 		{
-			// 2¹ÙÀÌÆ® UTF-8 (110xxxxx 10xxxxxx)
+			// 2ë°”ì´íŠ¸ UTF-8 (110xxxxx 10xxxxxx)
 			if ((byte & 0xE0) == 0xC0)
 			{
 				if (i + 1 >= data.size() || (static_cast<unsigned char>(data[i + 1]) & 0xC0) != 0x80)
@@ -51,7 +51,7 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 					continue;
 				}
 			}
-			// 3¹ÙÀÌÆ® UTF-8 (1110xxxx 10xxxxxx 10xxxxxx) - ÇÑ±Û ¹üÀ§ Æ÷ÇÔ
+			// 3ë°”ì´íŠ¸ UTF-8 (1110xxxx 10xxxxxx 10xxxxxx) - í•œê¸€ ë²”ìœ„ í¬í•¨
 			else if ((byte & 0xF0) == 0xE0)
 			{
 				if (i + 2 >= data.size()
@@ -62,7 +62,7 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 				}
 				else
 				{
-					// UTF-8 ÇÑ±Û ¹üÀ§ Ã¼Å© (0xEA-0xED)
+					// UTF-8 í•œê¸€ ë²”ìœ„ ì²´í¬ (0xEA-0xED)
 					if (byte >= 0xEA && byte <= 0xED)
 						hasUtf8Korean = true;
 
@@ -70,7 +70,7 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 					continue;
 				}
 			}
-			// 4¹ÙÀÌÆ® UTF-8 (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+			// 4ë°”ì´íŠ¸ UTF-8 (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
 			else if ((byte & 0xF8) == 0xF0)
 			{
 				if (i + 3 >= data.size()
@@ -92,17 +92,17 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 			}
 		}
 
-		// EUC-KR/CP949 ÆĞÅÏ °Ë»ç (UTF-8ÀÌ À¯È¿ÇÏÁö ¾ÊÀ» ¶§¸¸)
+		// EUC-KR/CP949 íŒ¨í„´ ê²€ì‚¬ (UTF-8ì´ ìœ íš¨í•˜ì§€ ì•Šì„ ë•Œë§Œ)
 		if (isValidUtf8 == false && hasEucKrPattern == false && i + 1 < data.size())
 		{
 			unsigned char curr = static_cast<unsigned char>(data[i]);
 			unsigned char next = static_cast<unsigned char>(data[i + 1]);
 
-			// EUC-KR(ksx1001) ÇÑ±Û ¹üÀ§ (0xB0-0xC8, 0xA1-0xFE)
+			// EUC-KR(ksx1001) í•œê¸€ ë²”ìœ„ (0xB0-0xC8, 0xA1-0xFE)
 			bool isEucKrHangul = (curr >= 0xB0 && curr <= 0xC8) && (next >= 0xA1 && next <= 0xFE);
 
-			// CP949 È®Àå ¹üÀ§(Windows): (0x81-0xFE, 0x41-0xFE) ´Ü, 0x7F Á¦¿Ü
-			// UTF-8ÀÌ ±úÁ³À» ¶§ "ÇÑ±ÛÀÌ ¾ø´Â" CP949 ÅØ½ºÆ®µµ euckr·Î ºĞ·ùµÇµµ·Ï º¸°­ÇÕ´Ï´Ù.
+			// CP949 í™•ì¥ ë²”ìœ„(Windows): (0x81-0xFE, 0x41-0xFE) ë‹¨, 0x7F ì œì™¸
+			// UTF-8ì´ ê¹¨ì¡Œì„ ë•Œ "í•œê¸€ì´ ì—†ëŠ”" CP949 í…ìŠ¤íŠ¸ë„ euckrë¡œ ë¶„ë¥˜ë˜ë„ë¡ ë³´ê°•í•©ë‹ˆë‹¤.
 			bool isCp949Dbcs = (curr >= 0x81 && curr <= 0xFE) && (next >= 0x41 && next <= 0xFE) && next != 0x7F;
 
 			if (isEucKrHangul || isCp949Dbcs)
@@ -112,18 +112,18 @@ yul::Encoding yul::detectEncoding(std::span<std::byte> data)
 		i++;
 	}
 
-	// UTF-8ÀÌ À¯È¿ÇÏ¸é UTF-8 ¹İÈ¯
+	// UTF-8ì´ ìœ íš¨í•˜ë©´ UTF-8 ë°˜í™˜
 	if (isValidUtf8)
 		return Encoding::utf8;
 
-	// EUC-KR ÆĞÅÏÀÌ ¹ß°ßµÇ¸é EUC-KR ¹İÈ¯
+	// EUC-KR íŒ¨í„´ì´ ë°œê²¬ë˜ë©´ EUC-KR ë°˜í™˜
 	if (hasEucKrPattern)
 		return Encoding::euckr;
 
 	return Encoding::unknown;
 }
 
-// EUC-KR/CP949 ¡æ UTF-8 º¯È¯
+// EUC-KR/CP949 â†’ UTF-8 ë³€í™˜
 std::u8string yul::convertEucKrToUtf8(std::span<std::byte> data)
 {
 	if (data.empty())
@@ -158,22 +158,22 @@ std::u8string yul::convertEucKrToUtf8(std::span<std::byte> data)
 		return out;
 	};
 
-	// °¡´ÉÇÑ °æ¿ì EUC-KR(51949)À» ¿ì¼± ½ÃµµÇÏ°í, ½ÇÆĞÇÏ¸é Windows ±âº»(949)À¸·Î Æú¹éÇÕ´Ï´Ù.
-	// 1) ¾ö°İ ¸ğµå(MB_ERR_INVALID_CHARS)·Î ½Ãµµ
+	// ê°€ëŠ¥í•œ ê²½ìš° EUC-KR(51949)ì„ ìš°ì„  ì‹œë„í•˜ê³ , ì‹¤íŒ¨í•˜ë©´ Windows ê¸°ë³¸(949)ìœ¼ë¡œ í´ë°±í•©ë‹ˆë‹¤.
+	// 1) ì—„ê²© ëª¨ë“œ(MB_ERR_INVALID_CHARS)ë¡œ ì‹œë„
 	for (UINT cp : { 51949u, 949u })
 	{
 		if (auto out = tryConvert(cp, MB_ERR_INVALID_CHARS); out.empty() == false)
 			return out;
 	}
 
-	// 2) Ä¡È¯ Çã¿ë ¸ğµå·Î ½Ãµµ (±úÁø ¹ÙÀÌÆ®´Â ½Ã½ºÅÛ ±âº» Ä¡È¯ ¹®ÀÚ·Î ´ëÃ¼µÉ ¼ö ÀÖÀ½)
+	// 2) ì¹˜í™˜ í—ˆìš© ëª¨ë“œë¡œ ì‹œë„ (ê¹¨ì§„ ë°”ì´íŠ¸ëŠ” ì‹œìŠ¤í…œ ê¸°ë³¸ ì¹˜í™˜ ë¬¸ìë¡œ ëŒ€ì²´ë  ìˆ˜ ìˆìŒ)
 	for (UINT cp : { 51949u, 949u })
 	{
 		if (auto out = tryConvert(cp, 0); out.empty() == false)
 			return out;
 	}
 
-	// º¯È¯ ºÒ°¡: ASCII¸¸ º¸Á¸ÇÏ°í ³ª¸ÓÁö´Â '?'·Î ´ëÃ¼
+	// ë³€í™˜ ë¶ˆê°€: ASCIIë§Œ ë³´ì¡´í•˜ê³  ë‚˜ë¨¸ì§€ëŠ” '?'ë¡œ ëŒ€ì²´
 	std::u8string fallback;
 	fallback.reserve(data.size());
 

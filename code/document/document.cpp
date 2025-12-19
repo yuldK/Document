@@ -1,4 +1,4 @@
-#include <vector>
+ï»¿#include <vector>
 #include <fstream>
 #include <algorithm>
 
@@ -34,15 +34,15 @@ std::unique_ptr<TextDocument> TextDocument::make(std::span<std::byte> binary)
 {
 	auto document = std::unique_ptr<TextDocument>{ new TextDocument{} };
 
-	// ÀÎÄÚµù °¨Áö
+	// ì¸ì½”ë”© ê°ì§€
 	Encoding encoding = detectEncoding(binary);
 
 	if (encoding == Encoding::utf8)
 	{
-		// UTF-8: BOM Á¦°Å ÈÄ ±×´ë·Î ÀúÀå
+		// UTF-8: BOM ì œê±° í›„ ê·¸ëŒ€ë¡œ ì €ì¥
 		size_t offset = 0;
 		if (checkBOM(binary))
-			offset = 3; // BOM Å©±â
+			offset = 3; // BOM í¬ê¸°
 
 		auto dataSpan = binary.subspan(offset);
 		document->text_ = std::u8string{
@@ -52,12 +52,12 @@ std::unique_ptr<TextDocument> TextDocument::make(std::span<std::byte> binary)
 	}
 	else if (encoding == Encoding::euckr)
 	{
-		// EUC-KR: UTF-8·Î º¯È¯
+		// EUC-KR: UTF-8ë¡œ ë³€í™˜
 		document->text_ = convertEucKrToUtf8(binary);
 	}
 	else
 	{
-		// Unknown: UTF-8·Î °£ÁÖ (fallback)
+		// Unknown: UTF-8ë¡œ ê°„ì£¼ (fallback)
 		document->text_ = std::u8string{
 			reinterpret_cast<const char8_t*>(binary.data()),
 			reinterpret_cast<const char8_t*>(binary.data() + binary.size())
@@ -71,32 +71,32 @@ std::unique_ptr<TextDocument> TextDocument::make(std::span<std::byte> binary)
 bool TextDocument::build()
 {
 	lineOffsets_.clear();
-	lineOffsets_.push_back(0); // Ã¹ ¹øÂ° ÁÙÀº Ç×»ó offset 0¿¡¼­ ½ÃÀÛ
+	lineOffsets_.push_back(0); // ì²« ë²ˆì§¸ ì¤„ì€ í•­ìƒ offset 0ì—ì„œ ì‹œì‘
 
-	// text_¸¦ ¼øÈ¸ÇÏ¸ç ÁÙ¹Ù²Ş ¹®ÀÚ¸¦ Ã£¾Æ ´ÙÀ½ ÁÙÀÇ ½ÃÀÛ offsetÀ» ±â·Ï
-	// Áö¿øÇÏ´Â ÁÙ¹Ù²Ş: \n, \r\n, \r
+	// text_ë¥¼ ìˆœíšŒí•˜ë©° ì¤„ë°”ê¿ˆ ë¬¸ìë¥¼ ì°¾ì•„ ë‹¤ìŒ ì¤„ì˜ ì‹œì‘ offsetì„ ê¸°ë¡
+	// ì§€ì›í•˜ëŠ” ì¤„ë°”ê¿ˆ: \n, \r\n, \r
 	for (size_t i = 0; i < text_.size(); ++i)
 	{
 		char8_t ch = text_[i];
 
 		if (ch == u8'\r')
 		{
-			// \r\nÀÎÁö È®ÀÎ
+			// \r\nì¸ì§€ í™•ì¸
 			if (i + 1 < text_.size() && text_[i + 1] == u8'\n')
 			{
-				// \r\n: ´ÙÀ½ ÁÙÀº i + 2ºÎÅÍ ½ÃÀÛ
+				// \r\n: ë‹¤ìŒ ì¤„ì€ i + 2ë¶€í„° ì‹œì‘
 				lineOffsets_.push_back(i + 2);
-				++i; // \nÀ» °Ç³Ê¶Ù±â
+				++i; // \nì„ ê±´ë„ˆë›°ê¸°
 			}
 			else
 			{
-				// \r¸¸ ÀÖ´Â °æ¿ì: ´ÙÀ½ ÁÙÀº i + 1ºÎÅÍ ½ÃÀÛ
+				// \rë§Œ ìˆëŠ” ê²½ìš°: ë‹¤ìŒ ì¤„ì€ i + 1ë¶€í„° ì‹œì‘
 				lineOffsets_.push_back(i + 1);
 			}
 		}
 		else if (ch == u8'\n')
 		{
-			// \n: ´ÙÀ½ ÁÙÀº i+1ºÎÅÍ ½ÃÀÛ
+			// \n: ë‹¤ìŒ ì¤„ì€ i+1ë¶€í„° ì‹œì‘
 			lineOffsets_.push_back(i + 1);
 		}
 	}
@@ -106,23 +106,23 @@ bool TextDocument::build()
 
 Position TextDocument::positionAt(size_t offset) const
 {
-	// offsetÀÌ ÅØ½ºÆ® ¹üÀ§¸¦ ¹ş¾î³­ °æ¿ì´Â ³¡ À§Ä¡ ¹İÈ¯
+	// offsetì´ í…ìŠ¤íŠ¸ ë²”ìœ„ë¥¼ ë²—ì–´ë‚œ ê²½ìš°ëŠ” ë ìœ„ì¹˜ ë°˜í™˜
 	if (offset >= text_.size())
 	{
 		if (lineOffsets_.size() == 1)
 			return Position{ 0, text_.size() };
 
-		size_t lastLine = lineOffsets_.size() - 1; // ¸¶Áö¸· ÁÙ ÀÎµ¦½º
+		size_t lastLine = lineOffsets_.size() - 1; // ë§ˆì§€ë§‰ ì¤„ ì¸ë±ìŠ¤
 		size_t lastLineStart = lineOffsets_[lastLine];
 		return Position{ lastLine, text_.size() - lastLineStart };
 	}
 
-	// ÀÌÁø °Ë»öÀ¸·Î offsetÀÌ ¼ÓÇÑ ÁÙ Ã£±â
-	// lower_bound: offsetº¸´Ù Å©°Å³ª °°Àº Ã¹ ¹øÂ° ¿ä¼Ò¸¦ Ã£À½
+	// ì´ì§„ ê²€ìƒ‰ìœ¼ë¡œ offsetì´ ì†í•œ ì¤„ ì°¾ê¸°
+	// lower_bound: offsetë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì€ ì²« ë²ˆì§¸ ìš”ì†Œë¥¼ ì°¾ìŒ
 	auto it = std::lower_bound(lineOffsets_.begin(), lineOffsets_.end(), offset + 1);
 
-	// it´Â offset + 1º¸´Ù Å©°Å³ª °°Àº Ã¹ ¹øÂ° ÁÙÀÇ ½ÃÀÛ offsetÀ» °¡¸®Å´
-	// ½ÇÁ¦ ÁÙÀÇ ÀÎµ¦½º´Â it - 1
+	// itëŠ” offset + 1ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ì€ ì²« ë²ˆì§¸ ì¤„ì˜ ì‹œì‘ offsetì„ ê°€ë¦¬í‚´
+	// ì‹¤ì œ ì¤„ì˜ ì¸ë±ìŠ¤ëŠ” it - 1
 	size_t line = std::distance(lineOffsets_.begin(), it) - 1;
 	size_t lineStart = lineOffsets_[line];
 	size_t character = offset - lineStart;
@@ -132,14 +132,14 @@ Position TextDocument::positionAt(size_t offset) const
 
 size_t TextDocument::offsetAt(const Position& position) const
 {
-	// ÁÙ ¹øÈ£°¡ ¹üÀ§¸¦ ¹ş¾î³­ ÅØ½ºÆ® ³¡ ¹İÈ¯
+	// ì¤„ ë²ˆí˜¸ê°€ ë²”ìœ„ë¥¼ ë²—ì–´ë‚œ í…ìŠ¤íŠ¸ ë ë°˜í™˜
 	if (position.line + 1 >= lineOffsets_.size())
 		return text_.size();
 
 	size_t lineStart = lineOffsets_[position.line];
 	size_t lineEnd = lineOffsets_[position.line + 1];
 
-	// character°¡ ÁÙ ±æÀÌ¸¦ ¹ş¾î³­ ÁÙ ³¡ ¹İÈ¯
+	// characterê°€ ì¤„ ê¸¸ì´ë¥¼ ë²—ì–´ë‚œ ì¤„ ë ë°˜í™˜
 	size_t offset = lineStart + position.character;
 	if (offset > lineEnd)
 		return lineEnd;

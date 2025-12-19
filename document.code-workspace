@@ -16,7 +16,7 @@
 			"xstring": "cpp"
 		},
 		"[cpp]": {
-			"files.encoding": "euckr",
+			"files.encoding": "utf8bom",
 			"editor.insertSpaces": false,
 		}
 	}

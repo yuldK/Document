@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "type.h"
 #include "position.h"
@@ -25,10 +25,10 @@ namespace yul
 		static std::unique_ptr<TextDocument> make(std::span<std::byte> binary);
 
 	public:
-		// offset(0-based)À» PositionÀ¸·Î º¯È¯
+		// offset(0-based)ì„ Positionìœ¼ë¡œ ë³€í™˜
 		Position positionAt(size_t offset) const;
 
-		// PositionÀ» offset(0-based)À¸·Î º¯È¯
+		// Positionì„ offset(0-based)ìœ¼ë¡œ ë³€í™˜
 		size_t offsetAt(const Position& position) const;
 
 		std::u8string_view getText() const;
@@ -47,9 +47,9 @@ namespace yul
 		std::optional<std::filesystem::path> path_ = std::nullopt;
 		std::u8string text_;
 
-		// °¢ ÁÙÀÇ ½ÃÀÛ offsetÀ» ÀúÀå (0-based)
-		// lineOffsets_[0] = 0 (Ã¹ ¹øÂ° ÁÙ)
-		// lineOffsets_[n] = n¹øÂ° ÁÙÀÇ ½ÃÀÛ offset
+		// ê° ì¤„ì˜ ì‹œì‘ offsetì„ ì €ì¥ (0-based)
+		// lineOffsets_[0] = 0 (ì²« ë²ˆì§¸ ì¤„)
+		// lineOffsets_[n] = në²ˆì§¸ ì¤„ì˜ ì‹œì‘ offset
 		std::vector<size_t> lineOffsets_;
 	};
 }

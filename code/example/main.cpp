@@ -1,8 +1,9 @@
-#include <iostream>
+Ôªø#include <iostream>
 #include <document/document.h>
 
 #include <format>
 #include <filesystem>
+#include <optional>
 #include <string_view>
 #include <vector>
 
@@ -67,10 +68,14 @@ namespace
 	}
 }
 
-void print_u8(std::u8string_view u8view)
+#ifndef ROOT_DIR
+#define ROOT_DIR ""
+#endif
+
+void print_u8(std::u8string_view u8view, std::optional<WORD> background = std::nullopt)
 {
-	// UTF-8 °Ê UTF-16 ±Ê¿Ã ∞ËªÍ
-	int len = MultiByteToWideChar(CP_UTF8
+	// UTF-8 ‚Üí UTF-16 Í∏∏Ïù¥ Í≥ÑÏÇ∞
+	const int len = MultiByteToWideChar(CP_UTF8
 		, 0
 		, reinterpret_cast<const char*>(u8view.data())
 		, static_cast<int>(u8view.size())
@@ -78,24 +83,47 @@ void print_u8(std::u8string_view u8view)
 		, 0
 	);
 
-	std::vector<TCHAR> buffer;
-	buffer.resize(len + 1, L'\0');
+	if (len <= 0)
+		return;
 
-	MultiByteToWideChar(CP_UTF8
-		, 0
-		, reinterpret_cast<const char*>(u8view.data())
-		, static_cast<int>(u8view.size())
-		, buffer.data()
-		, len
-	);
+	std::vector<wchar_t> buffer(static_cast<size_t>(len));
+	if (MultiByteToWideChar(CP_UTF8
+			, 0
+			, reinterpret_cast<const char*>(u8view.data())
+			, static_cast<int>(u8view.size())
+			, buffer.data()
+			, len
+		) == 0)
+	{
+		return;
+	}
 
-	DWORD written;
-	WriteConsoleW(GetStdHandle(STD_OUTPUT_HANDLE)
-		, buffer.data()
-		, static_cast<DWORD>(buffer.size())
-		, &written
-		, nullptr
-	);
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (out == nullptr || out == INVALID_HANDLE_VALUE)
+	{
+		std::wcout << std::wstring_view(buffer.data(), buffer.size());
+		return;
+	}
+
+	CONSOLE_SCREEN_BUFFER_INFO csbi{};
+	const bool has_attributes = GetConsoleScreenBufferInfo(out, &csbi) != 0;
+
+	if (background.has_value() && has_attributes)
+	{
+		std::wcout.flush();
+
+		const WORD original = csbi.wAttributes;
+		const WORD attributes = (original & 0x0F) | (*background & 0xF0);
+
+		SetConsoleTextAttribute(out, attributes);
+		DWORD written = 0;
+		WriteConsoleW(out, buffer.data(), static_cast<DWORD>(buffer.size()), &written, nullptr);
+		SetConsoleTextAttribute(out, original);
+		return;
+	}
+
+	DWORD written = 0;
+	WriteConsoleW(out, buffer.data(), static_cast<DWORD>(buffer.size()), &written, nullptr);
 }
 
 int main()
@@ -119,7 +147,7 @@ int main()
 	for (yul::line_type l = 0; l < document->lineLength(); ++l)
 	{
 		write_start_marker();
-		print_u8(document->getLine(l));
+		print_u8(document->getLine(l), (WORD)BACKGROUND_BLUE);
 
 		write_end_marker();
 		std::wcout << std::endl;
